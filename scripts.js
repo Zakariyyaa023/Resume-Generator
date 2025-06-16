@@ -154,7 +154,7 @@ document.getElementById('savePdfBtn').addEventListener('click', () => {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = 'resume.doc';
+  link.download = 'Generated Resume.doc';
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -168,7 +168,6 @@ const handleFormSubmit = async (e) => {
 
   const isValid = await isValidResumePrompt(promptText);
   if (isValid) {
-    console.log(isValid)
     const promptText = promptInput.value.trim();
  
     generateTextCode(`Please provide a detailed explanation along with the code for what was done but have it commented incase it is ran and ${promptText} do not ask me further just end the conversation politely,aswell having the end of the conversation commented and only provide html css and no js code nothing more`);
@@ -176,7 +175,6 @@ const handleFormSubmit = async (e) => {
     downloadBtn.classList.add("show");
     showLiveCode.classList.add("show")
     } else {
-      console.log(isValid)
       alert("Please describe building a resume or describe how you want it to look.");
     }
     // generateBtn.disabled = false;
@@ -199,7 +197,6 @@ async function isValidResumePrompt(prompt) {
     if (!response.ok) throw new Error("Text generation failed");
 
     const text = (await response.text()).toLowerCase().trim();
-    console.log("Pollinations response:", text); // Debug here
     return text.includes("yes"); // More flexible
   } catch (error) {
     console.error("Error validating prompt:", error);
