@@ -31,7 +31,6 @@ const examplePrompts = [
   "Build a resume for a logistics coordinator with expertise in inventory management, vendor relations, and supply chain optimization."
 ];
 
-
 // This will randomly select one example prompt and animate it into the prompt box using 10 speed.
 promptBtn.addEventListener("click", () => {
   const prompt = examplePrompts[Math.floor(Math.random() * examplePrompts.length)];
@@ -169,7 +168,7 @@ const handleFormSubmit = async (e) => {
   const isValid = await isValidResumePrompt(promptText);
   if (isValid) {
     const promptText = promptInput.value.trim();
- 
+    await delay(4000);
     generateTextCode(`Please provide a detailed explanation along with the code for what was done but have it commented incase it is ran and ${promptText} do not ask me further just end the conversation politely,aswell having the end of the conversation commented and only provide html css and no js code nothing more`);
     textArea.classList.add("show");
     downloadBtn.classList.add("show");
@@ -210,5 +209,7 @@ if (promptInput) {
 }
 
 generateBtn.addEventListener("click", () => {
- handleFormSubmit()
+  handleFormSubmit()
 });
+
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
