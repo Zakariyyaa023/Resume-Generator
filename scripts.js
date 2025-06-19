@@ -176,7 +176,7 @@ const handleFormSubmit = async (e) => {
     } else {
       alert("Please describe building a resume or describe how you want it to look.");
     }
-    // generateBtn.disabled = false;
+    generateBtn.disabled = false;
     return;
   }
 
