@@ -60,9 +60,9 @@ promptInput.addEventListener('input', () => {
 //connects to pollinatios.ai and then get the response ,encodes it to send disables a btn so it won't spam send to the api
 const generateTextCode = async (promptText) => {
   generateBtn.disabled = true;
-  downloadBtn
   let i = 0;
   let generatedText = "";
+
   try {
     const encodedPrompt = encodeURIComponent(promptText);
     const baseURL = `https://text.pollinations.ai/prompt/${encodedPrompt}`;
@@ -72,35 +72,52 @@ const generateTextCode = async (promptText) => {
         "Accept": "text/plain",
       },
     });
+
     if (!response.ok) {
       throw new Error("Text generation failed");
     }
+
     generatedText = await response.text();
+
+    // ✅ Strip Markdown fences ```html ... ```
+    const cleanText = generatedText
+      .replace(/^```html\s*/i, '') // remove ```html
+      .replace(/```$/, '')         // remove trailing ```
+
     const textArea = document.getElementById("generatedText");
     if (textArea) {
       textArea.value = "";
-//This auto scrolls as it is outputting typing
+      const trimmed = cleanText.trim().toLowerCase();
+          if (trimmed.startsWith("<") || trimmed.startsWith("<!doctype") || trimmed.startsWith("<style")) {
+            renderCodeInIframe(cleanText);
+          } else {
+            console.warn("Pollinations response is not valid HTML/CSS code.");
+            textArea.value += "Preview skipped: The response doesn't appear to be valid code.";
+          }
+      // Typing animation
       const typeInterval = setInterval(() => {
-        if (i < generatedText.length) {
-          textArea.value += generatedText.charAt(i);
+        if (i < cleanText.length) {
+          textArea.value += cleanText.charAt(i);
           textArea.scrollTop = textArea.scrollHeight;
-          i++;
           textArea.style.height = textArea.scrollHeight + "px";
+          i++;
         } else {
           clearInterval(typeInterval);
           generateBtn.disabled = false;
+
+          // ✅ Check after cleaning, not original!
+          
         }
       }, 5);
     }
-  renderCodeInIframe(generatedText);
   } catch (error) {
     console.error("Error generating text/code:", error);
     const textArea = document.getElementById("generatedText");
     if (textArea) {
       textArea.value = "// Error generating code. See console.";
     }
-  } 
-  
+    generateBtn.disabled = false;
+  }
 };
 
 // this then dispay code into a iframe on the right showing a preview of what the user can save
@@ -161,22 +178,27 @@ document.getElementById('savePdfBtn').addEventListener('click', () => {
 });
 
 //handles the form submit making sure everything runs in order
-const handleFormSubmit = async (e) => {
-  generateBtn.disabled = true;
+const handleFormSubmit = async () => {
   const promptText = promptInput.value?.trim() || "";
+  generateBtn.disabled = true;
 
-  // 🔍 Check if the prompt has at least 60 words
-  const characterCount = promptText.replace(/\s/g, "").length;
-  if (characterCount < 60) {
-    alert("Please enter at least 60 letters to proceed.");
+  // Count only alphabetic letters (no spaces, numbers, symbols)
+  const letterCount = (promptText.match(/[a-zA-Z]/g) || []).length;
+
+  if (letterCount < 50) {
+    alert("Please enter at least 50 letters (excluding symbols and spaces).");
     generateBtn.disabled = false;
     return;
   }
 
   const isValid = await isValidResumePrompt(promptText);
   if (isValid) {
-    await delay(4000);
-    generateTextCode(`Please provide the code for what was done and ${promptText} do not ask me further just end the conversation`);
+    await delay(2000);
+
+    // Strict instruction: only return HTML + CSS, with optional inline comments
+    const cleanPrompt = `Only generate HTML and CSS code for this: ${promptText}. Do not include any explanation or extra text. Only output code (with optional inline comments). No JavaScript. End politely in comments only.`;
+
+    await generateTextCode(cleanPrompt);
     textArea.classList.add("show");
     downloadBtn.classList.add("show");
     showLiveCode.classList.add("show");
