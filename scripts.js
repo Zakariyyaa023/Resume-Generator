@@ -165,20 +165,28 @@ const handleFormSubmit = async (e) => {
   generateBtn.disabled = true;
   const promptText = promptInput.value?.trim() || "";
 
-  const isValid = await isValidResumePrompt(promptText);
-  if (isValid) {
-    const promptText = promptInput.value.trim();
-    await delay(4000);
-    generateTextCode(`Please provide a detailed explanation along with the code for what was done but have it commented incase it is ran and ${promptText} do not ask me further just end the conversation politely,aswell having the end of the conversation commented and only provide html css and no js code nothing more`);
-    textArea.classList.add("show");
-    downloadBtn.classList.add("show");
-    showLiveCode.classList.add("show")
-    } else {
-      alert("Please describe building a resume or describe how you want it to look.");
-    }
+  // 🔍 Check if the prompt has at least 60 words
+  const characterCount = promptText.replace(/\s/g, "").length;
+  if (characterCount < 60) {
+    alert("Please enter at least 60 letters to proceed.");
     generateBtn.disabled = false;
     return;
   }
+
+  const isValid = await isValidResumePrompt(promptText);
+  if (isValid) {
+    await delay(4000);
+    generateTextCode(`Please provide the code for what was done and ${promptText} do not ask me further just end the conversation`);
+    textArea.classList.add("show");
+    downloadBtn.classList.add("show");
+    showLiveCode.classList.add("show");
+  } else {
+    alert("Please describe building a resume or describe how you want it to look.");
+  }
+
+  generateBtn.disabled = false;
+};
+
 
 //checks if the prompt is resume related and if so will continue if not it will aleart the broswer
 async function isValidResumePrompt(prompt) {
